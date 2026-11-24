@@ -1,0 +1,51 @@
+version: 2
+
+builds:
+  - main: ./cmd/satmux
+    binary: satmux
+    env: [CGO_ENABLED=0]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - name_template: "satmux_{{ .Os }}_{{ .Arch }}" # stable names, so releases/latest/download/ URLs work
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ["^docs:", "^chore:", "^ci:"]
+
+brews:
+  - name: satmux
+    homepage: "https://github.com/voska/satmux"
+    description: "Make airplane Wi-Fi and other high-latency links usable"
+    license: "MIT"
+    repository:
+      owner: voska
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    install: |
+      bin.install "satmux"
+    test: |
+      system "#{bin}/satmux", "version"
+
+nfpms:
+  - package_name: satmux
+    homepage: "https://github.com/voska/satmux"
+    maintainer: "voska"
+    description: "Make airplane Wi-Fi and other high-latency links usable"
+    license: "MIT"
+    formats: [deb, rpm]
+    contents:
+      - src: deploy/satmux.service
+        dst: /lib/systemd/system/satmux.service

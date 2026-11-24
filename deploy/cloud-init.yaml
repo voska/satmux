@@ -1,0 +1,16 @@
+#cloud-config
+# Boots a satmux relay. Read the connection string with:
+#   ssh root@SERVER journalctl -u satmux | grep satmux://
+#   (or: ssh root@SERVER SATMUX_STATE_DIR=/var/lib/satmux satmux relay invite)
+package_update: false
+runcmd:
+  - |
+    set -e
+    arch=$(uname -m); case "$arch" in x86_64) arch=amd64;; aarch64) arch=arm64;; esac
+    curl -fsSL "https://github.com/voska/satmux/releases/latest/download/satmux_linux_${arch}.tar.gz" | tar -xz -C /usr/local/bin satmux
+    curl -fsSL -o /etc/systemd/system/satmux.service https://raw.githubusercontent.com/voska/satmux/main/deploy/satmux.service
+    modprobe tcp_bbr || true
+    printf 'net.core.default_qdisc=fq\nnet.ipv4.tcp_congestion_control=bbr\n' > /etc/sysctl.d/90-satmux.conf
+    sysctl --system >/dev/null
+    systemctl daemon-reload
+    systemctl enable --now satmux

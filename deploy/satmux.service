@@ -1,0 +1,21 @@
+[Unit]
+Description=satmux relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/satmux relay --listen :8443
+Environment=SATMUX_STATE_DIR=/var/lib/satmux
+StateDirectory=satmux
+StateDirectoryMode=0700
+Restart=always
+RestartSec=2
+DynamicUser=yes
+AmbientCapabilities=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
